@@ -32,7 +32,6 @@ public class Main {
         }
         Thread.sleep(5000);
 
-
     }
     private static void createEnvironment() throws Exception {
         ZooKeeper zk = new ZooKeeper(connectionString, 500, watchedEvent -> {});
