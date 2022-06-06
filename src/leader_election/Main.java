@@ -1,4 +1,4 @@
-package domaci2;
+package leader_election;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
