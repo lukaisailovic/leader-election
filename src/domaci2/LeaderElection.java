@@ -31,7 +31,6 @@ public class LeaderElection implements Watcher {
         if (event.getPath() == null) {
             return;
         }
-        log("NEW EVENT " + event.getPath());
         if (event.getPath().equals("/leader") && !isLeader) {
             try {
                 Vote winningVote = Vote.valueOf(this.read("/leader", false));
@@ -47,7 +46,7 @@ public class LeaderElection implements Watcher {
         if (event.getPath().contains("/votes") && isLeader) {
             try {
                 List<String> children = this.getVotes();
-                log("Neko je glasao, trenutni broj glasova: " + children.size());
+                log("Someone voted, current number of votes is: " + children.size());
                 if (children.size() == 3) {
                     Vote winningVote = this.processVotes(children);
                     log("Winning vote is : "+winningVote);
@@ -86,7 +85,7 @@ public class LeaderElection implements Watcher {
         this.myVote = value;
         try {
             String path = zk.create("/votes/vote-", value.toString().getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
-            log("Glasao sa " + this.read(path, false));
+            log("Voted with " + this.read(path, false));
         } catch (KeeperException e) {
 
         }
@@ -103,7 +102,6 @@ public class LeaderElection implements Watcher {
             Integer current = votes.get(vote);
             votes.replace(vote,current+1);
         }
-        System.out.println(votes);
         if (votes.get(Vote.NO) > votes.get(Vote.YES)){
             return Vote.NO;
         }
@@ -113,15 +111,15 @@ public class LeaderElection implements Watcher {
     public void join() throws InterruptedException, KeeperException {
         try {
             zk.create("/leader", "start".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-            log("Uspesno sam postao lider");
+            log("Successfully promoted to leader");
             this.isLeader = true;
             List<String> votes = this.getVotes();
-            log("Ukupno je glasalo: " + votes.size());
-            // cekati glasove
+            log("Total votes: " + votes.size());
+            // wait for votes
         } catch (KeeperException e) {
             String content = this.read("/leader", true);
-            log("Leader vec postoji (vrednost=[" + content + "]), glasati");
-            // glasati
+            log("Leader already exists (node_value=[" + content + "]), should vote");
+            // vote
             this.vote();
         }
     }
