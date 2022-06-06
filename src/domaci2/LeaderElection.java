@@ -34,7 +34,12 @@ public class LeaderElection implements Watcher {
         log("NEW EVENT " + event.getPath());
         if (event.getPath().equals("/leader") && !isLeader) {
             try {
-                log("Nova vrednost /leader cvora: " + this.read("/leader", false));
+                Vote winningVote = Vote.valueOf(this.read("/leader", false));
+                String result = "lost";
+                if (winningVote.equals(myVote)){
+                    result = "won";
+                }
+                log("My vote "+result + " (voted "+this.myVote+")");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -44,8 +49,9 @@ public class LeaderElection implements Watcher {
                 List<String> children = this.getVotes();
                 log("Neko je glasao, trenutni broj glasova: " + children.size());
                 if (children.size() == 3) {
-                    this.processVotes(children);
-                    this.zk.setData("/leader", "end".getBytes(), 0);
+                    Vote winningVote = this.processVotes(children);
+                    log("Winning vote is : "+winningVote);
+                    this.zk.setData("/leader", winningVote.toString().getBytes(), 0);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -122,6 +128,10 @@ public class LeaderElection implements Watcher {
 
     private void log(String message) {
         Calendar cal = Calendar.getInstance();
-        System.out.println("[" + this.id + "]" + " " + "[" + dateFormat.format(cal.getTime()) + "]" + " " + message);
+        String role = "Follower";
+        if (this.isLeader){
+            role = "Leader";
+        }
+        System.out.println("[" + this.id + "]" + " " + "[" + dateFormat.format(cal.getTime()) + "]" + "["+ role + "]" + " " + message);
     }
 }
