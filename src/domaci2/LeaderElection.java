@@ -64,7 +64,7 @@ public class LeaderElection implements Watcher {
 
     public void stop() throws InterruptedException {
         zk.close();
-        System.out.println("Exiting...");
+        log("Exiting...");
     }
 
     private String read(String path, boolean watch) throws KeeperException, InterruptedException {

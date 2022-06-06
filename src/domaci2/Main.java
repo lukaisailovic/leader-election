@@ -30,7 +30,10 @@ public class Main {
             le.start();
             le.join();
         }
-        Thread.sleep(3000);
+        Thread.sleep(2000);
+        for (LeaderElection  le : leaderElections){
+           le.stop();
+        }
 
     }
     private static void createEnvironment() throws Exception {
