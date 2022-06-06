@@ -120,7 +120,9 @@ public class LeaderElection implements Watcher {
             String content = this.read("/leader", true);
             log("Leader already exists (node_value=[" + content + "]), should vote");
             // vote
-            this.vote();
+            if (content.equals("start")){
+                this.vote();
+            }
         }
     }
 
