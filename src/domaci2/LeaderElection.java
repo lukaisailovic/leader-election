@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 
 public class LeaderElection implements Watcher {
@@ -28,10 +29,21 @@ public class LeaderElection implements Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        System.out.println("NEW EVENT " + event.getPath());
+        if (event == null){
+            return;
+        }
+        log("NEW EVENT " + event.getPath());
         if (event.getPath().equals("/leader")) {
             try {
                 join();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (event.getPath().equals("/votes") && isLeader) {
+            try {
+                List<String> children = this.zk.getChildren("/votes",false);
+                log("Neko je glasao, trenutni broj glasova: " + children.size());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -47,26 +59,35 @@ public class LeaderElection implements Watcher {
         System.out.println("Exiting...");
     }
 
-    private void read() throws InterruptedException {
+    private String read(String path) throws KeeperException, InterruptedException {
+        byte[] content = zk.getData(path, true, null);
+        return new String(content);
+    }
+
+    private void vote() throws InterruptedException{
+        Random r = new Random();
+        String value = "yes";
+        if (r.nextBoolean()){
+            value = "no";
+        }
         try {
-            byte[] content = zk.getData("/leader", true, null);
-            System.out.println(this.id + ": " + new String(content));
-        } catch (KeeperException.NoNodeException e) {
-            // za slucaj da leader cvor nije napravljen ili je nestao
-            join();
+            String path = zk.create("/votes/vote-",value.getBytes() , ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+            log("Glasao sa "+this.read(path));
         } catch (KeeperException e) {
-            e.printStackTrace();
+
         }
     }
 
     public void join() throws InterruptedException {
         try {
-            zk.create("/leader", getIdBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+            zk.create("/leader", "start".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
             log("Uspesno sam postao lider");
             this.isLeader = true;
+            // cekati glasove
         } catch (KeeperException e) {
             log("Leader vec postoji, nije moguce kreirati cvor");
-            this.read();
+            // glasati
+            this.vote();
         }
     }
 

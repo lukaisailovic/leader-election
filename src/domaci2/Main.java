@@ -30,14 +30,9 @@ public class Main {
             le.start();
             le.join();
         }
-        Thread.sleep(2000);
+        Thread.sleep(5000);
 
-        leaderElections.get(0).stop();
-        Thread.sleep(2000);
-        leaderElections.get(1).stop();
-        Thread.sleep(2000);
-        leaderElections.get(2).stop();
-        leaderElections.get(3).stop();
+
     }
     private static void createEnvironment() throws Exception {
         ZooKeeper zk = new ZooKeeper(connectionString, 500, watchedEvent -> {});
