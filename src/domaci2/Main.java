@@ -30,7 +30,7 @@ public class Main {
             le.start();
             le.join();
         }
-        Thread.sleep(5000);
+        Thread.sleep(3000);
 
     }
     private static void createEnvironment() throws Exception {
